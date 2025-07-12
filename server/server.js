@@ -4,6 +4,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+// Fix for ES modules require
+const require = createRequire(import.meta.url);
 
 // Configurations
 dotenv.config();
@@ -36,11 +40,11 @@ const corsOptions = {
 
 // Middlewares
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Explicit preflight handling
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Security Headers Middleware
+// Security Headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -48,13 +52,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static Files with Security Headers
+// Static Files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   maxAge: '7d',
-  setHeaders: (res, path) => {
+  setHeaders: (res, filePath) => {
     res.setHeader(
       'Content-Type', 
-      path.endsWith('.xlsx') 
+      filePath.endsWith('.xlsx') 
         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
         : 'application/octet-stream'
     );
@@ -62,7 +66,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   }
 }));
 
-// Enhanced Health Check
+// Health Check
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
@@ -72,23 +76,23 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Route imports (keep your existing routes)
-import authRoutes from './routes/authRoutes.js';
-import uploadRoutes from './routes/uploadRoutes.js';
-import historyRoutes from './routes/historyRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
+// Route imports (using require for compatibility)
+const authRoutes = require('./routes/authRoutes.js');
+const uploadRoutes = require('./routes/uploadRoutes.js');
+const historyRoutes = require('./routes/historyRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
+const adminRoutes = require('./routes/adminRoutes.js');
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/history', historyRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authRoutes.default || authRoutes);
+app.use('/api/upload', uploadRoutes.default || uploadRoutes);
+app.use('/api/history', historyRoutes.default || historyRoutes);
+app.use('/api/users', userRoutes.default || userRoutes);
+app.use('/api/admin', adminRoutes.default || adminRoutes);
 
-// Enhanced Error Handling
+// Error Handling
 app.use((err, req, res, next) => {
-  console.error(`[${new Date().toISOString()}] Error:`, err.stack);
+  console.error(`[${new Date().toISOString()}] Error:`, err.message);
   
   if (err.name === 'UnauthorizedError') {
     return res.status(401).json({ error: 'Invalid token' });
@@ -96,12 +100,11 @@ app.use((err, req, res, next) => {
   
   res.status(err.status || 500).json({
     error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
-    timestamp: new Date().toISOString()
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-// MongoDB Connection with Retry Logic
+// MongoDB Connection
 const connectDB = async (retries = 5, interval = 5000) => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -124,39 +127,13 @@ const connectDB = async (retries = 5, interval = 5000) => {
   }
 };
 
-// Start Server with Connection Retries
+// Start Server
 connectDB();
 
-// Graceful Shutdown with Health Checks
-let isShuttingDown = false;
-
+// Graceful Shutdown
 process.on('SIGTERM', () => {
-  isShuttingDown = true;
-  console.log('SIGTERM received. Starting graceful shutdown...');
-  
-  const shutdownTimer = setTimeout(() => {
-    console.error('Force shutdown after timeout');
-    process.exit(1);
-  }, 10000);
-
-  mongoose.connection.close(false)
-    .then(() => {
-      clearTimeout(shutdownTimer);
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    })
-    .catch(err => {
-      console.error('Error during shutdown:', err);
-      process.exit(1);
-    });
-});
-
-// Health Middleware for Load Balancers
-app.use((req, res, next) => {
-  if (isShuttingDown) {
-    res.setHeader('Connection', 'close');
-    res.status(503).send('Server is shutting down');
-  } else {
-    next();
-  }
+  console.log('SIGTERM received. Shutting down gracefully');
+  mongoose.connection.close(false).then(() => {
+    process.exit(0);
+  });
 });
