@@ -40,7 +40,8 @@ export const loginUser = async (req, res) => {
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id,role: user.role }, JWT_SECRET, { expiresIn: '1d' });
-
+     res.header('Access-Control-Allow-Origin', 'https://excel-analytics-4clb.vercel.app');
+    res.header('Access-Control-Allow-Credentials', 'true');
     res.json({
       token,
       user: { id: user._id, name: user.name, email: user.email, role: user.role }

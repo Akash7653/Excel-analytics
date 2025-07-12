@@ -16,7 +16,13 @@ export function AuthProvider({ children }) {
   };
 
   const login = async ({ email, password }) => {
-    const res = await axios.post('https://excel-analytics-dg30.onrender.com/api/auth/login', { email, password });
+    const res = await axios.post('https://excel-analytics-dg30.onrender.com/api/auth/login', { email, password },
+    {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
     const { token, user } = res.data;
 

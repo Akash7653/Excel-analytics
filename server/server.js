@@ -82,7 +82,15 @@ const uploadRoutes = require('./routes/uploadRoutes.js');
 const historyRoutes = require('./routes/historyRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
 const adminRoutes = require('./routes/adminRoutes.js');
-
+ 
+// server.js - add this before your routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://excel-analytics-4clb.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 // Routes
 app.use('/api/auth', authRoutes.default || authRoutes);
 app.use('/api/upload', uploadRoutes.default || uploadRoutes);
