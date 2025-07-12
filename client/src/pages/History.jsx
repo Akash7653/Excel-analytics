@@ -18,7 +18,7 @@ export default function History() {
         }
 
         console.log('Fetching history...');
-        const res = await axios.get('http://localhost:5000/api/history', {
+        const res = await axios.get('https://excel-analytics-dg30.onrender.com/api/history', {
           headers: {
             Authorization: `Bearer ${token}`
           }

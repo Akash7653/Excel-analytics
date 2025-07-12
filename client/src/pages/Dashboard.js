@@ -57,7 +57,7 @@ export default function Dashboard() {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/upload/excel`,
+        `${process.env.REACT_APP_API_URL || 'https://excel-analytics-dg30.onrender.com'}/api/upload/excel`,
         formData,
         {
           headers: {

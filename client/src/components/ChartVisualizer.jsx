@@ -39,7 +39,7 @@ export default function ChartVisualizer({ data = [], defaultXKey = 'Name', defau
       if (!isReady) return;
 
       try {
-        await axios.post('http://localhost:5000/api/history', {
+        await axios.post('https://excel-analytics-dg30.onrender.com/api/history', {
           fileName: data[0]?.__filename || 'uploaded_file.xlsx',
           chartType,
           xAxis: xKey,

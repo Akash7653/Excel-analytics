@@ -52,7 +52,7 @@ export default function ExcelUpload() {
       setMessage({ text: '⏳ Uploading file...', type: 'info' });
 
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:5000/api/upload/excel', formData, {
+      const res = await axios.post('https://excel-analytics-dg30.onrender.com/api/upload/excel', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
