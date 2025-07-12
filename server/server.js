@@ -20,8 +20,9 @@ const PORT = process.env.PORT || 5000;
 const corsOptions = {
   origin: [
     process.env.FRONTEND_URL,
-    'http://localhost:3000',
-    'https://*.vercel.app'
+    'https://excel.analytics-da8b.vercel.app', // Your Vercel frontend
+  'http://localhost:3000',
+  'https://excel-analytics-dg30.onrender.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
